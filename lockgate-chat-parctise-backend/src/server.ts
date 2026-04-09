@@ -11,7 +11,7 @@ import { Server } from "socket.io";
 import { connectDB } from "./config/db";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { apiLimiter, speedLimiter } from "./middleware/rateLimiter";
-import { socketHandler } from "./socket/socketHandler";
+// import { socketHandler } from "./socket/socketHandler";
 import logger from "./utils/logger";
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
@@ -112,7 +112,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ─── Socket handler ───────────────────────────────────────────────────────────
-socketHandler(io);
+// socketHandler(io);
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || "5000") || 5000;

@@ -5,9 +5,7 @@ import { IUser, User } from "../models/User";
 import AppError from "../utils/AppError";
 import asyncHandler from "../utils/asyncHandler";
 
-/**
- * Extend Express Request
- */
+// Extend Express Request type to include user
 declare global {
   namespace Express {
     interface Request {
@@ -17,56 +15,42 @@ declare global {
   }
 }
 
-/**
- * Correct Socket.IO augmentation (FIXED)
- */
-declare module "socket.io" {
-  interface Socket {
-    user?: IUser;
+declare global {
+  namespace SocketIO {
+    interface Socket {
+      user?: IUser;
+    }
   }
 }
 
-/**
- * ─────────────────────────────────────────────
- * HTTP AUTH MIDDLEWARE
- * ─────────────────────────────────────────────
- */
+// ─── HTTP middleware ───────────────────────────────────────────────────────────
 const authenticate = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+    // 1. Extract token
     const authHeader = req.headers.authorization;
-
     if (!authHeader?.startsWith("Bearer ")) {
       throw new AppError("Access token required", 401, "NO_TOKEN");
     }
-
     const token = authHeader.split(" ")[1];
 
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch {
-      throw new AppError("Invalid token", 401, "INVALID_TOKEN");
-    }
+    // 2. Verify token
+    const decoded = verifyAccessToken(token);
 
+    // 3. Load user
     const user = await User.findById(decoded.userId).select(
       "+passwordChangedAt",
     );
-
-    if (!user) {
+    if (!user)
       throw new AppError("User no longer exists", 401, "USER_NOT_FOUND");
-    }
-
-    if (user.isBanned) {
+    if (user.isBanned)
       throw new AppError(
         "Your account has been suspended",
         403,
         "ACCOUNT_BANNED",
       );
-    }
 
-    const tokenTime = (decoded.iat ?? 0) * 1000;
-
-    if (user.changedPasswordAfter(tokenTime)) {
+    // 4. Check password change after token issue
+    if (user.changedPasswordAfter(decoded.iat || 0)) {
       throw new AppError(
         "Password recently changed. Please login again.",
         401,
@@ -75,25 +59,14 @@ const authenticate = asyncHandler(
     }
 
     req.user = user;
-
-    // FIX: ensure role is available
-    req.groupRole = (user as any).role;
-
     next();
   },
 );
 
-/**
- * ─────────────────────────────────────────────
- * ROLE GUARD (FIXED)
- * ─────────────────────────────────────────────
- */
+// ─── Role guard ───────────────────────────────────────────────────────────────
 const requireRole = (...roles: string[]) =>
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      throw new AppError("Not authenticated", 401, "NO_AUTH");
-    }
-
+    if (!req.user) throw new AppError("Not authenticated", 401);
     if (!roles.includes(req.groupRole || "")) {
       throw new AppError(
         "You do not have permission to perform this action",
@@ -101,22 +74,11 @@ const requireRole = (...roles: string[]) =>
         "FORBIDDEN",
       );
     }
-
     next();
   });
 
-/**
- * ─────────────────────────────────────────────
- * SOCKET AUTH MIDDLEWARE (FIXED TYPES)
- * ─────────────────────────────────────────────
- */
-// import { ExtendedError } from "socket.io/dist/namespace";
-
-const authenticateSocket = async (
-  socket: Socket,
-  //   next: (err?: ExtendedError) => void,
-  next: (err?: Error) => void,
-) => {
+// ─── Socket.io middleware ─────────────────────────────────────────────────────
+const authenticateSocket = async (socket: Socket, next: any) => {
   try {
     const token =
       socket.handshake.auth?.token ||
@@ -124,23 +86,15 @@ const authenticateSocket = async (
 
     if (!token) return next(new Error("NO_TOKEN"));
 
-    let decoded;
-    try {
-      decoded = verifyAccessToken(token);
-    } catch {
-      return next(new Error("INVALID_TOKEN"));
-    }
-
+    const decoded = verifyAccessToken(token);
     const user = await User.findById(decoded.userId);
-
     if (!user) return next(new Error("USER_NOT_FOUND"));
     if (user.isBanned) return next(new Error("ACCOUNT_BANNED"));
 
     socket.user = user;
-
     next();
   } catch (err: any) {
-    next(new Error(err?.message || "AUTH_FAILED"));
+    next(new Error(err.code || "AUTH_FAILED"));
   }
 };
 
