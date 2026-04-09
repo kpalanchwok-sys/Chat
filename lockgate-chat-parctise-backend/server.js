@@ -116,7 +116,7 @@ const start = async () => {
   });
 };
 
-// ─── Unhandled rejections / exceptions ───────────────────────────────────────
+// ─── Unhandled rejections / exceptions ─────────────────────────────────
 process.on('unhandledRejection', (err) => {
   logger.error('UNHANDLED REJECTION', { message: err.message, stack: err.stack });
   server.close(() => process.exit(1));
