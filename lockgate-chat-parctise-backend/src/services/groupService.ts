@@ -42,7 +42,7 @@ const browseGroups = async ({
       .sort({ lastActivity: -1 })
       .skip(skip)
       .limit(Number(limit))
-      .select("-members -pinnedMessages"),
+      .select("-pinnedMessages"),
     Group.countDocuments(filter),
   ]);
 

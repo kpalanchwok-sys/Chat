@@ -4,6 +4,15 @@ import slowDown from "express-slow-down";
 import { error } from "../utils/response";
 
 const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000; // 15 min
+const isDevelopment = process.env.NODE_ENV !== "production";
+const authWindowMs =
+  parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || "") || windowMs;
+const authMaxAttempts =
+  parseInt(process.env.AUTH_RATE_LIMIT_MAX || "") || 10;
+const authDevWindowMs =
+  parseInt(process.env.AUTH_RATE_LIMIT_DEV_WINDOW_MS || "") || 60 * 1000;
+const authDevMaxAttempts =
+  parseInt(process.env.AUTH_RATE_LIMIT_DEV_MAX || "") || 100;
 
 // ─── General API limiter ──────────────────────────────────────────────────────
 const apiLimiter: RateLimitRequestHandler = rateLimit({
@@ -17,15 +26,17 @@ const apiLimiter: RateLimitRequestHandler = rateLimit({
 
 // ─── Strict limiter for auth endpoints ───────────────────────────────────────
 const authLimiter: RateLimitRequestHandler = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX) || 10,
+  windowMs: isDevelopment ? authDevWindowMs : authWindowMs,
+  max: isDevelopment ? authDevMaxAttempts : authMaxAttempts,
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true,
   handler: (req: Request, res: Response) =>
     error(
       res,
-      "Too many login attempts. Please wait 15 minutes before trying again.",
+      isDevelopment
+        ? "Too many login attempts for local development. Please wait a minute and try again."
+        : "Too many login attempts. Please wait 15 minutes before trying again.",
       429,
     ),
 });
