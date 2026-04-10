@@ -14,8 +14,12 @@ export default function Login() {
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await login({ email, password });
-    connectSocket();
+    try {
+      await login({ email, password });
+      connectSocket();
+    } catch {
+      // The auth store already exposes the server error in UI state.
+    }
   };
 
   return (

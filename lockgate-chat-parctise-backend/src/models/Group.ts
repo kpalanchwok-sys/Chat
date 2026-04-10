@@ -97,7 +97,7 @@ groupSchema.index({ type: 1, isActive: 1, lastActivity: -1 });
 
 // ─── Virtuals ─────────────────────────────────────────────────────────────────
 groupSchema.virtual<IGroup, number>("memberCount").get(function () {
-  return this.members.length;
+  return Array.isArray(this.members) ? this.members.length : 0;
 });
 
 // ─── Methods ──────────────────────────────────────────────────────────────────

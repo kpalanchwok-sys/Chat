@@ -18,8 +18,12 @@ export default function Register({ onSwitchToLogin }: RegisterProps) {
 
   const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await register({ username, email, password, bio });
-    connectSocket();
+    try {
+      await register({ username, email, password, bio });
+      connectSocket();
+    } catch {
+      // The auth store already exposes the server error in UI state.
+    }
   };
 
   return (

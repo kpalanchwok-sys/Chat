@@ -16,11 +16,12 @@ export default function MessageInput() {
 
   useEffect(() => {
     return () => {
+      stopTyping();
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
     };
-  }, []);
+  }, [activeGroupId]);
 
   const emitTyping = () => {
     if (!activeGroupId) return;

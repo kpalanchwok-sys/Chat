@@ -5,7 +5,7 @@ import { useSocketStore } from "../store/socketStore";
 const socketBaseUrl = (
   import.meta.env.VITE_SOCKET_URL ??
   import.meta.env.VITE_API_BASE_URL ??
-  "http://localhost:5001/api"
+  "http://localhost:5000/api"
 ).replace(/\/api\/?$/, "");
 
 let activeSocket: Socket | null = null;
