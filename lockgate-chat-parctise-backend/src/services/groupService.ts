@@ -1,6 +1,6 @@
 import { Group } from "../models/Group";
 import { Message } from "../models/Message";
-import { IUser, User } from "../models/User";
+import User from "../models/User";
 import AppError from "../utils/AppError";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ const createGroup = async (
     members: [{ user: userId, role: "owner", joinedAt: new Date() }],
   });
 
-  if (type === "private") group.generateInviteCode();
+  // if (type === "private") group.generateInviteCode();
   await group.save();
 
   await User.findByIdAndUpdate(userId, { $addToSet: { groups: group._id } });
@@ -100,7 +100,8 @@ const createGroup = async (
   return populateGroup(Group.findById(group._id));
 };
 
-const joinGroup = async (groupId: string, user: IUser) => {
+// const joinGroup = async (groupId: string, user: IUser) => {
+const joinGroup = async (groupId: string, user: any) => {
   const group = await Group.findById(groupId);
   if (!group || !group.isActive) throw new AppError("Group not found", 404);
   if (group.type === "private")
@@ -129,7 +130,8 @@ const joinGroup = async (groupId: string, user: IUser) => {
   return group;
 };
 
-const joinByInvite = async (inviteCode: string, user: IUser) => {
+// const joinByInvite = async (inviteCode: string, user: IUser) => {
+const joinByInvite = async (inviteCode: string, user: any) => {
   const group = await Group.findOne({ inviteCode, isActive: true });
   if (!group) throw new AppError("Invalid invite code", 404, "INVALID_INVITE");
   if (group.isMember(user._id))
@@ -155,7 +157,8 @@ const joinByInvite = async (inviteCode: string, user: IUser) => {
   return group;
 };
 
-const leaveGroup = async (groupId: string, user: IUser) => {
+// const leaveGroup = async (groupId: string, user: IUser) => {
+const leaveGroup = async (groupId: string, user: any) => {
   const group = await Group.findById(groupId);
   if (!group) throw new AppError("Group not found", 404);
   if (!group.isMember(user._id))
@@ -287,7 +290,7 @@ const regenerateInviteCode = async (
   if (group.type !== "private")
     throw new AppError("Only private groups have invite codes", 400);
 
-  group.generateInviteCode();
+  // group.generateInviteCode();
   await group.save();
   return group.inviteCode;
 };

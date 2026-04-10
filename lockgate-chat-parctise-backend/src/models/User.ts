@@ -1,31 +1,32 @@
 import bcrypt from "bcryptjs";
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-interface IUser extends Document {
-  username: string;
-  email: string;
-  password: string;
-  avatar: string | null;
-  bio: string;
-  isOnline: boolean;
-  lastSeen: Date;
-  refreshToken: string | null;
-  groups: mongoose.Types.ObjectId[];
-  isVerified: boolean;
-  isBanned: boolean;
-  bannedReason: string | null;
-  passwordChangedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  comparePassword(candidatePassword: string): Promise<boolean>;
-  changedPasswordAfter(jwtIssuedAt: number): boolean;
-  toJSON(): Omit<
-    IUser,
-    "password" | "refreshToken" | "bannedReason" | "passwordChangedAt"
-  >;
-}
+// interface IUser extends Document {
+//   username: string;
+//   email: string;
+//   password: string;
+//   avatar: string | null;
+//   bio: string;
+//   isOnline: boolean;
+//   lastSeen: Date;
+//   refreshToken: string | null;
+//   groups: mongoose.Types.ObjectId[];
+//   isVerified: boolean;
+//   isBanned: boolean;
+//   bannedReason: string | null;
+//   passwordChangedAt: Date | null;
+//   createdAt: Date;
+//   updatedAt: Date;
+//   comparePassword(candidatePassword: string): Promise<boolean>;
+//   changedPasswordAfter(jwtIssuedAt: number): boolean;
+//   toJSON(): Omit<
+//     IUser,
+//     "password" | "refreshToken" | "bannedReason" | "passwordChangedAt"
+//   >;
+// }
 
-const userSchema = new Schema<IUser>(
+// const userSchema = new Schema<IUser>(
+const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
@@ -116,5 +117,8 @@ userSchema.methods.toJSON = function () {
   return obj;
 };
 
-const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
-export { IUser, User };
+const User = mongoose.model("User", userSchema);
+export default User;
+
+// const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);
+// export { IUser, User };

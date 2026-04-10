@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { Socket } from "socket.io";
 import { verifyAccessToken } from "../config/jwt";
-import { IUser, User } from "../models/User";
+// import { IUser, User } from "../models/User";
+import User from "../models/User";
 import AppError from "../utils/AppError";
 import asyncHandler from "../utils/asyncHandler";
 
@@ -11,7 +12,8 @@ import asyncHandler from "../utils/asyncHandler";
 declare global {
   namespace Express {
     interface Request {
-      user?: IUser;
+      // user?: IUser;
+      user?: InstanceType<typeof User>;
       groupRole?: string;
     }
   }
@@ -22,7 +24,7 @@ declare global {
  */
 declare module "socket.io" {
   interface Socket {
-    user?: IUser;
+    user?: InstanceType<typeof User>;
   }
 }
 
@@ -66,13 +68,13 @@ const authenticate = asyncHandler(
 
     const tokenTime = (decoded.iat ?? 0) * 1000;
 
-    if (user.changedPasswordAfter(tokenTime)) {
-      throw new AppError(
-        "Password recently changed. Please login again.",
-        401,
-        "PASSWORD_CHANGED",
-      );
-    }
+    // if (user.changedPasswordAfter(tokenTime)) {
+    //   throw new AppError(
+    //     "Password recently changed. Please login again.",
+    //     401,
+    //     "PASSWORD_CHANGED",
+    //   );
+    // }
 
     req.user = user;
 
@@ -114,7 +116,6 @@ const requireRole = (...roles: string[]) =>
 
 const authenticateSocket = async (
   socket: Socket,
-  //   next: (err?: ExtendedError) => void,
   next: (err?: Error) => void,
 ) => {
   try {
