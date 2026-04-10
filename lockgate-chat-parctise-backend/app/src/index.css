@@ -61,7 +61,8 @@ body {
 
 button,
 input,
-textarea {
+textarea,
+select {
   font: inherit;
 }
 
@@ -71,7 +72,8 @@ button {
 }
 
 input,
-textarea {
+textarea,
+select {
   width: 100%;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
@@ -86,7 +88,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   border-color: rgba(125, 211, 252, 0.6);
   box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
 }
@@ -321,6 +324,16 @@ a {
   border: 1px solid var(--border);
 }
 
+.button--danger {
+  background: rgba(251, 113, 133, 0.12);
+  color: #fecdd3;
+  border: 1px solid rgba(251, 113, 133, 0.28);
+}
+
+.button--compact {
+  padding: 0.6rem 0.85rem;
+}
+
 .chat-shell {
   display: grid;
   grid-template-columns: 330px minmax(0, 1fr);
@@ -521,6 +534,74 @@ a {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.chat-window__header-actions {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.stack-form,
+.group-summary,
+.member-list,
+.group-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.group-panel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 1rem;
+}
+
+.group-panel {
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.group-panel__header,
+.member-card,
+.member-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.group-panel__header h3 {
+  margin: 0;
+  color: var(--text-strong);
+}
+
+.group-panel__header span,
+.group-panel__meta,
+.group-summary p,
+.member-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.group-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.member-card {
+  padding: 0.85rem 0.95rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.member-card strong {
+  color: var(--text-strong);
+}
+
 .message-list {
   min-height: 0;
   overflow: auto;
@@ -608,6 +689,10 @@ a {
   .sidebar__section--scroll {
     max-height: none;
   }
+
+  .group-panel-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -622,7 +707,10 @@ a {
 
   .chat-window__header,
   .sidebar__brand,
-  .message-input__actions {
+  .message-input__actions,
+  .member-card,
+  .member-card__actions,
+  .chat-window__header-actions {
     align-items: flex-start;
     flex-direction: column;
   }

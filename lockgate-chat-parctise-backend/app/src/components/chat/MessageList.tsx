@@ -4,14 +4,21 @@ import { connectSocket, getSocket } from "../../socket/socket";
 import { useAuthStore } from "../../store/authStore";
 import { useChatStore, type ChatMessage } from "../../store/chatStore";
 
+interface TypingUser {
+  userId: string;
+  username: string;
+}
+
 export default function MessageList() {
   const activeGroupId = useChatStore((state) => state.activeGroupId);
   const messages = useChatStore((state) => state.messages);
   const setMessages = useChatStore((state) => state.setMessages);
   const appendMessage = useChatStore((state) => state.appendMessage);
+  const currentUserId = useAuthStore((state) => state.user?._id);
   const accessToken = useAuthStore((state) => state.accessToken);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   const groupMessages = useMemo(
@@ -21,6 +28,7 @@ export default function MessageList() {
 
   useEffect(() => {
     if (!activeGroupId) {
+      setTypingUsers([]);
       return;
     }
 
@@ -59,8 +67,14 @@ export default function MessageList() {
     loadMessages();
 
     const socket = getSocket();
+    const joinGroupRoom = () => {
+      socket?.emit("group:join", { groupId: activeGroupId });
+    };
+
     if (socket?.connected) {
-      socket.emit("group:join", { groupId: activeGroupId });
+      joinGroupRoom();
+    } else {
+      socket?.once("connect", joinGroupRoom);
     }
 
     const handleNewMessage = ({ message }: { message: ChatMessage }) => {
@@ -71,13 +85,33 @@ export default function MessageList() {
       }
     };
 
+    const handleTypingUpdate = ({
+      groupId,
+      typingUsers,
+    }: {
+      groupId: string;
+      typingUsers: TypingUser[];
+    }) => {
+      if (groupId !== activeGroupId) {
+        return;
+      }
+
+      setTypingUsers(
+        typingUsers.filter((typingUser) => typingUser.userId !== currentUserId),
+      );
+    };
+
     socket?.on("message:new", handleNewMessage);
+    socket?.on("typing:update", handleTypingUpdate);
 
     return () => {
       cancelled = true;
+      setTypingUsers([]);
+      socket?.off("connect", joinGroupRoom);
       socket?.off("message:new", handleNewMessage);
+      socket?.off("typing:update", handleTypingUpdate);
     };
-  }, [accessToken, activeGroupId, appendMessage, setMessages]);
+  }, [accessToken, activeGroupId, appendMessage, currentUserId, setMessages]);
 
   useEffect(() => {
     scrollerRef.current?.scrollTo({
@@ -99,6 +133,13 @@ export default function MessageList() {
       {!loading && groupMessages.length === 0 && !error ? (
         <div className="message-list__state">
           Start the conversation. Your first message sets the tone.
+        </div>
+      ) : null}
+      {typingUsers.length > 0 ? (
+        <div className="message-list__state">
+          {typingUsers.length === 1
+            ? `${typingUsers[0].username} is typing...`
+            : `${typingUsers.map((user) => user.username).join(", ")} are typing...`}
         </div>
       ) : null}
 
