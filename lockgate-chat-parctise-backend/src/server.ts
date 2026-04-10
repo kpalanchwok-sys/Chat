@@ -8,7 +8,6 @@ import path from "path";
 
 import { connectDB } from "./config/db";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
-import { apiLimiter, speedLimiter } from "./middleware/rateLimiter";
 import { initSocket } from "./socket/socketServer";
 import logger from "./utils/logger";
 
@@ -59,9 +58,9 @@ app.use(
   }),
 );
 
-// ─── Rate limiting ────────────────────────────────────────────────────────────
-app.use("/api/", speedLimiter);
-app.use("/api/", apiLimiter);
+// // ─── Rate limiting ────────────────────────────────────────────────────────────
+// app.use("/api/", speedLimiter);
+// app.use("/api/", apiLimiter);
 
 // ─── API routes ───────────────────────────────────────────────────────────────
 app.use("/api/auth", authRoutes);
